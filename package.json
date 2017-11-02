@@ -1,0 +1,10 @@
+{
+  "name": "RegisterQueue",
+  "version": "1.0.0",
+  "description": "A registration queue for new users onboarding for hoard",
+  "author": "Stoyan Dimitrov",
+  "license": "MIT",
+  "dependencies": {
+    "zeppelin-solidity": "*"
+  }
+}
