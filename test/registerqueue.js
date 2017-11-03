@@ -9,14 +9,16 @@ contract('RegisterQueue', function(accounts){
             instance.registerUser({from: accounts[0]}).then(function(tx_id){
               console.log(tx_id);
               var errMessage = "transaction registerUser failed because user has been registerd already";
-              instance.registerUser.call({from: accounts[0]}).then(function(pos){
-                console.log(pos.valueOf());
-                assert.fail(errMessage);
-                done();
-              }).catch(function(e){
-                //There should be a VM error, but not our assert eeror
-                assert.notEqual(e.message, "assert.fail()", errMessage);
-                done();
+              it("should fail to register the same user more than once", function(done){
+                instance.registerUser.call({from: accounts[0]}).then(function(pos){
+                  console.log(pos.valueOf());
+                  assert.fail(errMessage);
+                  done();
+                }).catch(function(e){
+                  //There should be a VM error, but not our assert eeror
+                  assert.notEqual(e.message, "assert.fail()", errMessage);
+                  done();
+                });
               });
             });
       });
