@@ -1,27 +1,62 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.13;
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
 contract RegisterQueue is Ownable {
-    int public queueFront = 0;
+    uint queuePosition = 0;
+    uint allowedInPosition = 0;
+    struct Registry {
+      uint position;
+      bool set;
+    }
+    mapping(address => Registry) queue;
+
+    //check that the user has been registered in the queue
+    modifier isRegistered(address userAddress) {
+      require(queue[userAddress].set);
+      _;
+    }
+
+    modifier isNotRegistered(address userAddress) {
+      require(!queue[userAddress].set);
+      _;
+    }
 
     //Don't send money to this contract
-    function(){
+    function() payable public {
       revert();
     }
 
     //Register user into the queue at the end of the line, return the
     //position of the user once inserted
-    function registerUser(address referrerAddress) returns (int){
-      return 1;
+    function registerUser() isNotRegistered(msg.sender) returns (uint){
+      queue[msg.sender] = Registry(queuePosition++, true);
+      return queuePosition;
     }
 
     //Move any user in the queue to a point where they are allowed
     //access to the app utilizing this contract
-    function skipLine(address userAddress) onlyOwner returns (int){
-      return 1;
+    //userAddress has to have already been registered in order to skip them to
+    //the front of the line
+    function skipLine(address userAddress) isRegistered(userAddress) onlyOwner{
+      require(userAddress != address(0));
+      queue[userAddress].position = 0;
     }
 
-    function getQueueFront() view returns (int){
-      return queueFront;
+    //Update the front of the queue, new front has to
+    //be greater than the old one
+    function updateAllowedInPosition(uint allowIn) onlyOwner{
+      require(allowIn >= allowedInPosition);//dont disable already enabled users
+      allowedInPosition = allowIn;
+    }
+
+    //checks if the user is allowed to participate, their position should
+    //be less to or equal to allowedInPosition
+    function isUserApproved(address userAddress) isRegistered(userAddress) constant returns (bool){
+      return queue[userAddress].position <= allowedInPosition;
+    }
+
+    //gets the current front of the queue
+    function getQueuePosition() constant returns (uint){
+      return queuePosition;
     }
 }
