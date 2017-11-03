@@ -2,7 +2,7 @@ pragma solidity ^0.4.13;
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
 contract RegisterQueue is Ownable {
-    uint queuePosition = 0;
+    uint queuePosition = 1;
     uint allowedInPosition = 0;
     struct Registry {
       uint position;
@@ -34,8 +34,8 @@ contract RegisterQueue is Ownable {
     //Register user into the queue at the end of the line, return the
     //position of the user once inserted
     function registerUser() isNotRegistered(msg.sender) returns (uint){
-      queue[msg.sender] = Registry(queuePosition++, true);
-      return queuePosition;
+      queue[msg.sender] = Registry(queuePosition, true);
+      return queuePosition++;
     }
 
     //Move any user in the queue to a point where they are allowed
