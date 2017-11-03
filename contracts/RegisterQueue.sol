@@ -21,6 +21,11 @@ contract RegisterQueue is Ownable {
       _;
     }
 
+    modifier validAddress(address userAddress){
+      require(userAddress != address(0));
+      _;
+    }
+
     //Don't send money to this contract
     function() payable public {
       revert();
@@ -37,8 +42,7 @@ contract RegisterQueue is Ownable {
     //access to the app utilizing this contract
     //userAddress has to have already been registered in order to skip them to
     //the front of the line
-    function skipLine(address userAddress) isRegistered(userAddress) onlyOwner{
-      require(userAddress != address(0));
+    function skipLine(address userAddress) validAddress(userAddress) isRegistered(userAddress) onlyOwner{
       queue[userAddress].position = 0;
     }
 
