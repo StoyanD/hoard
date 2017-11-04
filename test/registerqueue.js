@@ -10,10 +10,8 @@ contract('RegisterQueue', function(accounts){
 
   it("should register new users", async function(){
     let pos = await instance.registerUser.call({from: accounts[0]});
-    console.log(pos.valueOf());
     assert.equal(pos.valueOf(), 1, "1 should be the first position");
     let tx_id = await instance.registerUser({from: accounts[0]});
-    console.log(tx_id);
     var erMessage = "transaction registerUser should fail because user has been registerd already";
     try {
       //should fail to register the same user more than once
@@ -84,12 +82,29 @@ contract('RegisterQueue', function(accounts){
     await instance.registerUser({from: accounts[1]});
     await instance.registerUser({from: accounts[2]});
     try{
-      await instance.updateAllowedInPosition(1);
+      await instance.updateAllowedInPosition(1, {from: accounts[1]});
       assert.fail('should have thrown before');
     }catch(error){
       assertJump(error, "Only the owner should be able to call this function");
     }
 
-  )};
+    //Allow the first two users in
+    await instance.updateAllowedInPosition(2);
+    let allowed = await instance.isUserApproved(accounts[0]);
+    assert.equal(allowed.valueOf(), true, "should be allowed in");
+    allowed = await instance.isUserApproved(accounts[1]);
+    assert.equal(allowed.valueOf(), true, "should be allowed in");
+    allowed = await instance.isUserApproved(accounts[2]);
+    assert.equal(allowed.valueOf(), false, "should not be allowed in");
+
+    //Dont allow the allowedInPosition to go backwards
+    try{
+      await instance.updateAllowedInPosition(1);
+      assert.fail('should have thrown before');
+    }catch(error){
+      assertJump(error, "Should not be able to move the allowedInPosition backwards");
+    }
+
+  });
 
 });//end contract tests
