@@ -79,4 +79,17 @@ contract('RegisterQueue', function(accounts){
     assert.equal(allowed.valueOf(), true, "second user should be skipped now");
   });
 
+  it("should update the position of allowed users from the queue", async function(){
+    await instance.registerUser({from: accounts[0]});
+    await instance.registerUser({from: accounts[1]});
+    await instance.registerUser({from: accounts[2]});
+    try{
+      await instance.updateAllowedInPosition(1);
+      assert.fail('should have thrown before');
+    }catch(error){
+      assertJump(error, "Only the owner should be able to call this function");
+    }
+
+  )};
+
 });//end contract tests
