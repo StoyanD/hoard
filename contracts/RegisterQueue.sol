@@ -4,11 +4,17 @@ import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 contract RegisterQueue is Ownable {
     uint queuePosition = 1;
     uint allowedInPosition = 0;
+
     struct Registry {
       uint position;
       bool set;
     }
+
+    //Queue to store the position of each address
     mapping(address => Registry) queue;
+
+    //array to store all the addresses that are in the queue
+    address[] queueArray;
 
     //check that the user has been registered in the queue
     modifier isRegistered(address userAddress) {
@@ -26,6 +32,10 @@ contract RegisterQueue is Ownable {
       _;
     }
 
+    function RegisterQueue(){
+
+    }
+
     //Don't send money to this contract
     function() payable public {
       revert();
@@ -35,6 +45,7 @@ contract RegisterQueue is Ownable {
     //position of the user once inserted
     function registerUser() isNotRegistered(msg.sender) returns (uint){
       queue[msg.sender] = Registry(queuePosition, true);
+      queueArray.push(msg.sender);
       return queuePosition++;
     }
 
