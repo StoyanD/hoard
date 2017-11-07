@@ -100,9 +100,8 @@ contract('RegisterQueue', function(accounts){
     //Dont allow the allowedInPosition to go backwards
     try{
       await instance.updateAllowedInPosition(1);
-      assert.fail('should have thrown before');
     }catch(error){
-      assertJump(error, "Should not be able to move the allowedInPosition backwards");
+      assert.fail('should allow to block users that have already been allowed to start');
     }
 
   });
