@@ -9,13 +9,13 @@ contract('RegisterQueue', function(accounts){
   });
 
   it("should register new users", async function(){
-    let pos = await instance.registerUser.call({from: accounts[0]});
+    let pos = await instance.registerUser.call("email_hash", {from: accounts[0]});
     assert.equal(pos.valueOf(), 1, "1 should be the first position");
-    let tx_id = await instance.registerUser({from: accounts[0]});
+    let tx_id = await instance.registerUser("email_hash", {from: accounts[0]});
     var erMessage = "transaction registerUser should fail because user has been registerd already";
     try {
       //should fail to register the same user more than once
-      let regCall = await instance.registerUser.call({from: accounts[0]});
+      let regCall = await instance.registerUser.call("email_hash", {from: accounts[0]});
       assert.fail(erMessage);
     }catch(error){
       assertJump(error, erMessage);
@@ -25,11 +25,11 @@ contract('RegisterQueue', function(accounts){
   it("should return the queue position", async function(){
     let pos = await instance.getQueuePosition.call();
     assert.equal(pos.valueOf(), 1, "initial queue position should be 1");
-    let tx_id = await instance.registerUser({from: accounts[0]});
+    let tx_id = await instance.registerUser("email_hash", {from: accounts[0]});
     pos = await instance.getQueuePosition.call();
     assert.equal(pos.valueOf(), 2, "next queue position should be 2");
     try{
-      await instance.registerUser({from: accounts[0]});
+      await instance.registerUser("email_hash", {from: accounts[0]});
       assert.fail('should have thrown before');
     }catch(error){
       assertJump(error);
@@ -39,7 +39,7 @@ contract('RegisterQueue', function(accounts){
   });
 
   it("should allow owner to skip the line for registered users", async function(){
-    await instance.registerUser({from: accounts[0]});
+    await instance.registerUser("email_hash", {from: accounts[0]});
     try{
       await instance.skipLine(accounts[0], {from:accounts[1]});
       assert.fail('should have thrown before');
@@ -56,7 +56,7 @@ contract('RegisterQueue', function(accounts){
   });
 
   it("should require valid addresses to skip the line", async function(){
-    await instance.registerUser({from: accounts[0]});
+    await instance.registerUser("email_hash", {from: accounts[0]});
     let allowed = await instance.isUserApproved(accounts[0]);
     assert.equal(allowed.valueOf(), false, "first user should not be allowed to skip yet");
     try{
@@ -66,7 +66,7 @@ contract('RegisterQueue', function(accounts){
       assertJump(error, "This user has not been registered yet, so should throw");
     }
 
-    await instance.registerUser({from: accounts[1]});
+    await instance.registerUser("email_hash", {from: accounts[1]});
     await instance.skipLine(accounts[0]);
     allowed = await instance.isUserApproved(accounts[0]);
     assert.equal(allowed.valueOf(), true, "first user should allowed to skip now");
@@ -78,9 +78,9 @@ contract('RegisterQueue', function(accounts){
   });
 
   it("should update the position of allowed users from the queue", async function(){
-    await instance.registerUser({from: accounts[0]});
-    await instance.registerUser({from: accounts[1]});
-    await instance.registerUser({from: accounts[2]});
+    await instance.registerUser("email_hash", {from: accounts[0]});
+    await instance.registerUser("email_hash", {from: accounts[1]});
+    await instance.registerUser("email_hash", {from: accounts[2]});
     try{
       await instance.updateAllowedInPosition(1, {from: accounts[1]});
       assert.fail('should have thrown before');
