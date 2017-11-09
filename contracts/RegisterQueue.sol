@@ -18,6 +18,10 @@ contract RegisterQueue is Ownable {
     //array to store all the addresses that are in the queue
     address[] private queueArray;
 
+    //way to say sorry to the support team when we block previously
+    //allowed user from starting
+    event BuySupportTeamBeers(uint beerNumber);
+
     //check that the user has been registered in the queue
     modifier isRegistered(address userAddress) {
       require(queue[userAddress].set);
@@ -82,7 +86,10 @@ contract RegisterQueue is Ownable {
     //Update the front of the queue, new front has to
     //be greater than the old one
     function updateAllowedInPosition(uint allowIn) onlyOwner{
-      /*require(allowIn >= allowedInPosition);//dont disable already enabled users*/
+      //keep support team happy when you do this to them XD
+      if(allowIn < allowedInPosition){
+          BuySupportTeamBeers(allowedInPosition - allowIn);
+      }
       allowedInPosition = allowIn;
     }
 
