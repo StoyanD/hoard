@@ -45,13 +45,17 @@ contract RegisterQueue is Ownable {
 
     //Register user into the queue at the end of the line, return the
     //position of the user once inserted
-    function registerUser(string hashedEmail) isNotRegistered(msg.sender) returns (uint){
+    function registerUser(string hashedEmail) validAddress(msg.sender) isNotRegistered(msg.sender) returns (uint){
       queue[msg.sender] = Registry(queuePosition, hashedEmail, true);
       queueArray.push(msg.sender);
       return queuePosition++;
     }
 
-    function registerUserWithReferral(string hashedEmail, address referrer) validAddress(referrer){
+    //register new user with a referrer. The referrer has to already be registered,
+    //and they get moved up in the queue by REFERRAL_BONUS.
+    //NOTE: referrer can hack this and register a bunch of fake addresses to
+    //      skip themselves to the front of the queue
+    function registerUserWithReferral(string hashedEmail, address referrer) isRegistered(referrer){
       registerUser(hashedEmail);
       moveInQueue(referrer, false);
     }
@@ -64,6 +68,8 @@ contract RegisterQueue is Ownable {
       moveInQueue(userAddress, true);
     }
 
+    //moves the user in the line by the REFERRAL_BONUS or to the front if
+    //toFront is set to true
     function moveInQueue(address userAddress, bool toFront) private validAddress(userAddress) isRegistered(userAddress){
       if(toFront
         || 0 >= int(queue[userAddress].position - REFERRAL_BONUS)){
@@ -80,8 +86,14 @@ contract RegisterQueue is Ownable {
       allowedInPosition = allowIn;
     }
 
-    function updateReferralBonus(uint bonusMoves) onlyOwner{
+    //sets the referral bonus
+    function setReferralBonus(uint bonusMoves) onlyOwner{
       REFERRAL_BONUS = bonusMoves;
+    }
+
+    //returns the user position in the queue, throws if user is not registered
+    function getUserQueuePosition(address userAddress) validAddress(userAddress) isRegistered(userAddress) constant returns (uint){
+      return queue[userAddress].position;
     }
 
     //checks if the user is allowed to participate, their position should
@@ -93,5 +105,11 @@ contract RegisterQueue is Ownable {
     //gets the current front of the queue
     function getQueuePosition() constant returns (uint){
       return queuePosition;
+    }
+
+    //gets the referral bonus that referrers get to skip in line by
+    //when one of their referrees registers
+    function getReferralBonus() constant returns (uint){
+      return REFERRAL_BONUS;
     }
 }

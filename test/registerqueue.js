@@ -22,6 +22,59 @@ contract('RegisterQueue', function(accounts){
     }
   });
 
+  it("should register new users with referrer", async function(){
+    try{
+        await instance.registerUserWithReferral("email_hash", accounts[0], {from: accounts[0]});
+        assert.fail('should have thrown before');
+    }catch(error){
+      //shouldn't be able to register and set yourself as referrer
+      assertJump(error);
+    }
+    await instance.registerUser("email_hash", {from: accounts[0]});
+    let pos = await instance.getUserQueuePosition.call(accounts[0]);
+    assert.equal(pos.valueOf(), 1, "1 should be the first position");
+
+    await instance.registerUserWithReferral("email_hash", accounts[0], {from: accounts[1]});
+    pos = await instance.getUserQueuePosition.call(accounts[1]);
+    assert.equal(pos.valueOf(), 2, "first referred user should be at position 2");
+    pos = await instance.getUserQueuePosition.call(accounts[0]);
+    assert.equal(pos.valueOf(), 0, "referrer should be skipped to position 0");
+  });
+
+  it("should allow the owner to change the referral bonus", async function(){
+    let pos = await instance.getReferralBonus.call({from: accounts[1]});
+    assert.equal(pos.valueOf(), 5, "default referral bonus should be 5");
+
+    try{
+        await instance.setReferralBonus(3, {from: accounts[1]});
+        assert.fail('should have thrown before');
+    }catch(error){
+      //non-owner shouldn't be able to change
+      assertJump(error);
+    }
+    await instance.setReferralBonus(7, {from: accounts[0]});
+    pos = await instance.getReferralBonus.call({from: accounts[0]});
+    assert.equal(pos.valueOf(), 7, "new referral bonus should be 7");
+  });
+
+  it("should allow us to set the referral bonus if owner", async function(){
+    let bonus = await instance.getReferralBonus.call();
+    assert.equal(bonus.valueOf(), 5, "bonus should default to 5");
+    try{
+      await instance.setReferralBonus(10, {from: accounts[1]});
+      assert.fail('should have thrown before');
+    }catch(error){
+      assertJump(error);
+    }
+    //Should not have changed
+    bonus = await instance.getReferralBonus.call();
+    assert.equal(bonus.valueOf(), 5, "bonus should default to 5");
+
+    await instance.setReferralBonus(10, {from: accounts[0]});
+    bonus = await instance.getReferralBonus.call();
+    assert.equal(bonus.valueOf(), 10, "bonus should have been updated to 10");
+  });
+
   it("should return the queue position", async function(){
     let pos = await instance.getQueuePosition.call();
     assert.equal(pos.valueOf(), 1, "initial queue position should be 1");
