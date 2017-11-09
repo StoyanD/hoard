@@ -83,8 +83,7 @@ contract RegisterQueue is Ownable {
       }
     }
 
-    //Update the front of the queue, new front has to
-    //be greater than the old one
+    //Update the front of the queue
     function updateAllowedInPosition(uint allowIn) onlyOwner{
       //keep support team happy when you do this to them XD
       if(allowIn < allowedInPosition){
