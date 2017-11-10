@@ -39,6 +39,17 @@ contract('RegisterQueue', function(accounts){
     assert.equal(pos.valueOf(), 2, "first referred user should be at position 2");
     pos = await instance.getUserQueuePosition.call(accounts[0]);
     assert.equal(pos.valueOf(), 0, "referrer should be skipped to position 0");
+
+    instance = await RegisterQueue.new();
+
+    for(var i = 0; i < 7; i++){
+      await instance.registerUser("email_hash", {from: accounts[i]});
+    }
+    pos = await instance.getUserQueuePosition.call(accounts[6]);
+    assert.equal(pos.valueOf(), 7, "last registered user should be at position 7");
+    await instance.registerUserWithReferral("email_hash", accounts[6], {from: accounts[7]});
+    pos = await instance.getUserQueuePosition.call(accounts[6]);
+    assert.equal(pos.valueOf(), 2, "referrer user should be at position 2 after referral");
   });
 
   it("should allow the owner to change the referral bonus", async function(){
